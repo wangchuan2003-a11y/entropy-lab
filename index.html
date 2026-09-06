@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#111f2b" />
+    <meta
+      name="description"
+      content="用可重放的Ehrenfest双箱随机模型，看微观事件如何形成宏观分布。真实轨迹、熵曲线与理论二项分布。"
+    />
+    <title>Entropy Lab · 熵与时间</title>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="./">entropy<span>lab</span></a>
+      <nav>
+        <a href="#plots">轨迹与分布</a><a href="#model">模型边界</a
+        ><a
+          href="https://github.com/wangchuan2003-a11y/entropy-lab"
+          target="_blank"
+          rel="noopener"
+          >GitHub</a
+        >
+      </nav>
+    </header>
+    <main>
+      <section class="intro">
+        <h1>随机的一步，<br />时间的一个方向。</h1>
+        <p>从全部在左，到接近平衡。<br />但熵会每一步都增加吗？</p>
+      </section>
+      <section class="settings" aria-label="初始设置">
+        <label for="n"
+          >粒子数 N
+          <input
+            id="n"
+            type="number"
+            min="20"
+            max="300"
+            step="1"
+            value="100" /></label
+        ><label for="seed"
+          >随机种子
+          <input
+            id="seed"
+            type="number"
+            min="0"
+            max="4294967295"
+            step="1"
+            value="42" /></label
+        ><label for="initial"
+          >初始状态
+          <select id="initial">
+            <option value="left">全部在左</option>
+            <option value="balanced">近似平衡</option>
+          </select></label
+        ><button id="restart">按设置重开</button>
+      </section>
+      <section class="instrument" aria-label="双箱实验">
+        <div class="box-labels">
+          <div><span>左箱</span><strong id="left">100</strong></div>
+          <div class="entropy-display">
+            <span>宏观多重度的对数</span><strong id="entropy">0</strong
+            ><small>S = log₂ C(N, n左) · bits</small>
+          </div>
+          <div><span>右箱</span><strong id="right">0</strong></div>
+        </div>
+        <div class="chambers">
+          <div class="chamber left"><span>LEFT</span></div>
+          <div class="chamber right"><span>RIGHT</span></div>
+          <div id="particles" class="particles" aria-hidden="true"></div>
+        </div>
+        <div class="event-line">
+          <span id="event">初始状态：还没有随机事件</span
+          ><span id="step-count">0 / 2000 步</span>
+        </div>
+      </section>
+      <section class="transport" aria-label="模拟控制">
+        <button id="play" class="primary">开始观察</button
+        ><button id="forward">单步</button><button id="back">倒退一步</button
+        ><button id="replay">从头重放</button
+        ><label for="speed"
+          >速度
+          <select id="speed">
+            <option value="2">2 步/秒</option>
+            <option value="10" selected>10 步/秒</option>
+            <option value="50">50 步/秒</option>
+            <option value="100">100 步/秒</option>
+          </select></label
+        >
+      </section>
+      <div class="timeline">
+        <label for="timeline">已保存的事件</label
+        ><input
+          id="timeline"
+          type="range"
+          min="0"
+          max="0"
+          value="0"
+          step="1"
+        /><output id="timeline-label">0 / 0</output>
+      </div>
+      <p id="status" role="status" aria-live="polite">
+        每步均匀选一个有标签粒子，再以 50% 概率换箱、50% 概率保持。
+      </p>
+      <section id="plots" class="plots">
+        <article>
+          <div class="plot-title">
+            <h2>熵的轨迹</h2>
+            <span id="delta">当前变化 0 bits</span>
+          </div>
+          <svg
+            id="entropy-plot"
+            viewBox="0 0 560 240"
+            role="img"
+            aria-label="当前已观察轨迹的宏观熵曲线"
+          ></svg>
+          <p>
+            横轴：步数；纵轴：宏观多重度 bits。曲线可以上升、保持，也可以下降。
+          </p>
+        </article>
+        <article>
+          <div class="plot-title">
+            <h2>停在哪里更常见？</h2>
+            <span id="samples">1 个状态样本</span>
+          </div>
+          <svg
+            id="histogram"
+            viewBox="0 0 560 240"
+            role="img"
+            aria-label="左箱粒子数经验直方图与理论二项分布"
+          ></svg>
+          <div class="legend">
+            <span><i></i>当前前缀频率</span
+            ><span><i></i>理论 Binomial(N, ½)</span>
+          </div>
+          <p>
+            横轴：左箱粒子数；纵轴：概率。包含初态，相邻样本相关；重放不重复计样本。
+          </p>
+        </article>
+      </section>
+      <div class="share">
+        <button id="share">复制初始设置链接</button
+        ><button id="csv">导出当前轨迹 CSV</button
+        ><span>最多记录 2,000 步，到达上限自动暂停。参数改变会清空轨迹。</span>
+      </div>
+      <section class="notes" id="model">
+        <h2>这个模型说得很少，<br />也让你看得更清楚。</h2>
+        <div>
+          <p>
+            <strong>它是什么。</strong> Ehrenfest 双箱模型的 lazy
+            变体。粒子有标签，每步随机选择一个，再用独立公平硬币决定换箱或保持。因此
+            n左 = k 时，减少的概率为 k/(2N)，增加为 (N−k)/(2N)，保持为 ½。
+          </p>
+          <p>
+            <strong>这里的“熵”。</strong> 有 C(N,k)
+            种微观标签分布对应相同的左箱计数 k。我们画的是其以2为底的对数，单位
+            bits。这是宏观多重度的对数，不是真实热力学熵单位；模型没有空间、碰撞、能量或温度。粒子坐标仅用来区分标签。
+          </p>
+          <p>
+            <strong>为什么能倒退。</strong>
+            事件和随机生成器状态被保存了。倒退与重放读取这些信息，原样恢复粒子位置；它不是自然过程自发逆转，也不会推翻热力学。只有当前光标之前的轨迹进入直方图和
+            CSV。
+          </p>
+          <p>
+            <strong>理论与有限样本。</strong> 这个链的平稳宏观分布是
+            Binomial(N,½)。曲线相似不等于验证定理；从全左出发存在过渡过程，样本还相互相关。熵不保证每一步增加，在有限粒子系统中会波动。改变初始条件再观察。
+          </p>
+          <p>
+            <a
+              href="https://www.randomservices.org/random/markov/Ehrenfest.html"
+              target="_blank"
+              rel="noopener"
+              >模型参考：Random Services · The Ehrenfest Chains</a
+            >
+          </p>
+        </div>
+      </section>
+    </main>
+    <footer>
+      <span>Entropy Lab · Information makes replay possible.</span
+      ><span>本地计算，无模型上传</span>
+    </footer>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
