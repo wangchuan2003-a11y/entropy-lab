@@ -2,7 +2,7 @@
 
 [在线体验](https://wangchuan2003-a11y.github.io/entropy-lab/) · [模型说明](docs/REFERENCES.md)
 
-![熵与时间实验初始画面](docs/preview.png)
+![熵与时间实验初始画面](docs/preview.jpg)
 
 **每一步都是随机的，为什么宏观上常常走向平衡？**
 
