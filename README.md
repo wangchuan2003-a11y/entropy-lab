@@ -1,5 +1,9 @@
 # Entropy Lab · 熵与时间
 
+[在线体验](https://wangchuan2003-a11y.github.io/entropy-lab/) · [模型说明](docs/REFERENCES.md)
+
+![熵与时间实验初始画面](docs/preview.png)
+
 **每一步都是随机的，为什么宏观上常常走向平衡？**
 
 观察20–300个有标签粒子在两个箱子之间变化。播放、单步、倒退与重放同一条轨迹，比较宏观熵曲线、经验直方图和理论二项分布。
